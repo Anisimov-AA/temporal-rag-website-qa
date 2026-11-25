@@ -64,10 +64,6 @@ knowledge = build({**CONFIG, "prompt": "json_known_pages"})
 knowledge.warm_up = lambda store, docs: None
 for snapshot in load_snapshots(SNAPSHOTS):
     knowledge.ingest(snapshot)
-try:
-    knowledge.llm.invoke("Reply OK")
-except Exception as error:
-    print("warm-up failed, the first question will load the model:", str(error)[:80])
 
 def nice(day):
     return date.fromisoformat(str(day)).strftime("%b %d, %Y")
@@ -139,7 +135,7 @@ def ask(question, as_of):
     c = knowledge.config
     snapshot_id = knowledge.pick(as_of or None)
     chunks = search(question, snapshot_id)
-    prompt = write_the_prompt(c["prompt"], question, chunks)
+    prompt = write_the_prompt(c["prompt"], question, chunks, knowledge.dates[snapshot_id])
     reply = ask_the_llm(knowledge.llm, GAPS[c["llm"]], prompt, FORMATS[c["prompt"]])
     reply = check_the_answer(question, reply)
     seconds = time.perf_counter() - start
@@ -153,6 +149,12 @@ def ask(question, as_of):
         by_page.setdefault(key, []).append(chunk)
     sources = "<div style='color:#666;font-size:0.9em'>Sources</div><ol style='margin-top:4px'>" + "".join(source_line(chunks) for chunks in by_page.values()) + "</ol>"
     return reply.answer.replace("<0xA0>", " ").replace(" ", " "), sources + footer
+
+
+try:
+    ask("What savings options do you offer?", "")
+except Exception as error:
+    print("warm-up failed, the first question will load the models:", str(error)[:80])
 
 
 with gr.Blocks(title="Temporal RAG") as demo:
