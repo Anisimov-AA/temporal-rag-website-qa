@@ -10,7 +10,7 @@ from pathlib import Path
 import gradio as gr
 import markdown
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse
 
 ROOT = Path(os.getenv("APP_ROOT", Path(__file__).resolve().parents[1]))
@@ -115,18 +115,64 @@ days = sorted(knowledge.dates.values(), reverse=True)
 versions = [(f"Latest ({nice(days[0])})", "")] + [(nice(d), str(d)) for d in days[1:]]
 
 
-def source_line(chunks):
+chunk_docs = {doc.id: doc for sid in knowledge.keywords for doc in knowledge.keywords[sid].docs}
+
+
+def page_title(chunk):
+    title = chunk.metadata.get("title")
+    if not title or title.startswith("http"):
+        title = chunk.metadata["url"].rstrip("/").rsplit("/", 1)[-1].replace("-", " ")
+    return title.replace(" | Dupaco", "")
+
+
+def source_line(chunks, title):
     first = chunks[0]
     url = first.metadata["url"]
     snapshot_id = first.metadata.get("snapshot_id")
     name = files.get((snapshot_id, url.rstrip("/")))
-    title = first.metadata.get("title")
-    if not title or title.startswith("http"):
-        title = url.rstrip("/").rsplit("/", 1)[-1].replace("-", " ")
-    title = title.replace(" | Dupaco", "")
     day = first.metadata.get("published") or first.metadata.get("taken_on")
-    href = f"/page/{snapshot_id}/{name}" if name else url
+    ids = "&".join(f"c={chunk.id}" for chunk in chunks if chunk.id in chunk_docs)
+    href = f"/page/{snapshot_id}/{name}?{ids}#passage" if name else url
     return f"<li><a href='{href}' target='_blank'>{escape(title)}</a> <span style='color:#888'>· {day}</span></li>"
+
+
+def find_passage(lines, doc):
+    flat = [re.sub(r"\s+", " ", line).strip() for line in lines]
+    want = {re.sub(r"\s+", " ", line).strip() for line in doc.page_content.splitlines() if len(line.strip()) > 20}
+    hits = [n for n, line in enumerate(flat) if line in want]
+    if not hits:
+        return None
+    groups, group = [], [hits[0]]
+    for n in hits[1:]:
+        if n - group[-1] <= 8:
+            group.append(n)
+        else:
+            groups.append(group)
+            group = [n]
+    groups.append(group)
+    best = max(groups, key=len)
+    start, end = best[0], best[-1]
+    while start > 0 and flat[start].startswith("|") and flat[start - 1].startswith("|"):
+        start -= 1
+    while end + 1 < len(flat) and flat[end].startswith("|") and flat[end + 1].startswith("|"):
+        end += 1
+    return start, end
+
+
+def mark_passages(text, ids):
+    lines = text.splitlines()
+    spans = sorted(s for s in (find_passage(lines, chunk_docs[i]) for i in ids if i in chunk_docs) if s)
+    merged = []
+    for start, end in spans:
+        if merged and start <= merged[-1][1] + 1:
+            merged[-1] = (merged[-1][0], max(end, merged[-1][1]))
+        else:
+            merged.append((start, end))
+    for n, (start, end) in reversed(list(enumerate(merged))):
+        anchor = " id='passage'" if n == 0 else ""
+        lines[end + 1:end + 1] = ["", "</div>", ""]
+        lines[start:start] = ["", f"<div class='passage'{anchor} markdown='1'>", ""]
+    return "\n".join(lines)
 
 
 def search(question, snapshot_id):
@@ -153,9 +199,15 @@ def ask(question, as_of):
     cited = [chunks[p - 1] for p in reply.pages if 1 <= p <= len(chunks)] or chunks[:2]
     by_page = {}
     for chunk in cited:
-        key = (chunk.metadata.get("title") or chunk.metadata["url"]).replace(" | Dupaco", "")
-        by_page.setdefault(key, []).append(chunk)
-    sources = "<div style='color:#666;font-size:0.9em'>Sources</div><ol style='margin-top:4px'>" + "".join(source_line(chunks) for chunks in by_page.values()) + "</ol>"
+        by_page.setdefault(chunk.metadata["url"], []).append(chunk)
+    lines, seen = [], set()
+    for chunks in by_page.values():
+        title = page_title(chunks[0])
+        if title in seen:
+            title += " · " + chunks[0].metadata["url"].rstrip("/").rsplit("/", 1)[-1]
+        seen.add(title)
+        lines.append(source_line(chunks, title))
+    sources = "<div style='color:#666;font-size:0.9em'>Sources</div><ol style='margin-top:4px'>" + "".join(lines) + "</ol>"
     return reply.answer.replace("<0xA0>", " ").replace(" ", " "), sources + footer
 
 
@@ -205,17 +257,18 @@ def about_page(snapshot_id):
 
 
 @app.get("/page/{snapshot_id}/pages/{name}", response_class=HTMLResponse)
-def page(snapshot_id, name):
+def page(snapshot_id, name, c: list[str] = Query(default=[])):
     if (snapshot_id, f"pages/{name}") not in pages:
         raise HTTPException(404)
     text = (SNAPSHOTS / snapshot_id / "pages" / name).read_text(encoding="utf-8")
-    html = markdown.markdown(text, extensions=["tables"])
+    html = markdown.markdown(mark_passages(text, c), extensions=["tables", "md_in_html"])
     html = re.sub(r"<a\b[^>]*>", "<span>", html).replace("</a>", "</span>")
     day = nice(snapshot_id.split("_")[1])
     return f"""<html><head><meta charset='utf-8'><title>{Path(name).stem}</title>
 <style>body{{max-width:800px;margin:auto;font-family:sans-serif;padding:16px}}
 .top{{position:sticky;top:0;background:#fff;color:gray;padding:8px 0;border-bottom:1px solid #ddd}}
-table{{border-collapse:collapse}} td,th{{border:1px solid #ddd;padding:4px 8px}}</style></head>
+table{{border-collapse:collapse}} td,th{{border:1px solid #ddd;padding:4px 8px}}
+.passage{{background:#fff8c5;border-left:4px solid #d4a72c;padding:2px 10px;scroll-margin-top:60px}}</style></head>
 <body><div class='top'>Saved copy of the site from {day}</div>{html}
 </body></html>"""
 
