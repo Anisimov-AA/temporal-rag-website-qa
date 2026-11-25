@@ -18,7 +18,7 @@ I had no paid API and no GPU of my own, so I rented one NVIDIA L4 on Google Clou
 
 ## The demo
 
-`demo/` is a web page on top of the same chain. You ask a question, pick a version of the site, and get the answer with its sources. Each source opens the saved copy of the page at the passage the model read. The demo runs in Docker: Ollama with the two models, and the app on port 7860.
+I made a small web page to ask questions by hand and read the answers next to their sources. I kept it in `demo/` in case it helps to see how the chain works. You pick a version of the site, ask, and each source opens the saved copy of the page at the passage the model read. It runs in Docker: Ollama with the two models, and the page on port 7860.
 
 ## Run it on Google Cloud (what I did)
 
