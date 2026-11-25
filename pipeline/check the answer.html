@@ -1,0 +1,221 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Check the answer</title><style>
+:root{--bg:#f6f8fa;--card:#ffffff;--ink:#1f2328;--muted:#59636e;--line:#d1d9e0;--acc:#818b98;--acc-bg:#eff2f5}
+*{box-sizing:border-box}
+body{margin:0;padding:32px 36px;background:var(--bg);color:var(--ink);
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif}
+.col{display:flex;flex-direction:column;align-items:flex-start}
+.arrow{color:var(--muted);font-size:18px;line-height:22px;padding-left:18px}
+.arrow::before{content:"↓"}
+.item{display:flex;align-items:flex-start}
+.step{font:inherit;font-size:15px;color:var(--ink);background:var(--card);border:1px solid var(--line);
+ border-radius:8px;padding:10px 14px;cursor:pointer;white-space:nowrap;text-align:left}
+.step:hover{border-color:var(--acc)}
+.step.open{border-color:var(--acc);background:var(--acc-bg)}
+.step .num{font-weight:700;color:var(--ink);margin-right:6px}
+.step .plus{color:var(--muted);margin-left:8px}
+.link{width:28px;height:1px;background:var(--acc);margin-top:21px;flex:none}
+.item.down{flex-direction:column}
+.gapline{height:12px}
+.step.summary{border:0;background:none;padding:0 14px 0 15px;font-style:italic;line-height:1.3}.step.summary:hover{text-decoration:underline}
+.item.down>.card{margin:8px 0 4px 18px;min-width:760px}
+.kids{padding-left:14px}
+.item.down>.kids{margin:8px 0 4px 18px}
+.kids.new{animation:slide .25s ease-out}
+@keyframes slide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+@media (max-width:600px){body{padding:20px 16px}}
+
+.card{font-size:13px;line-height:1.55}
+.card.new{animation:slide .25s ease-out}
+.flow{display:flex;align-items:flex-start;gap:8px}
+.colm{display:flex;flex-direction:column;gap:10px;width:300px}
+.colm:first-child{width:350px}
+.to{color:var(--muted);font-size:16px;line-height:20px;align-self:flex-start}
+.chead{font-size:13px;margin:0 0 6px;white-space:nowrap}
+.who{display:inline-block;color:var(--muted);font-size:11px;border:1px solid var(--line);border-radius:10px;padding:0 7px;margin-left:6px}
+.box{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 10px;overflow-wrap:anywhere}
+.box .box{background:var(--card)}
+.box .inner{margin:6px 0 0}
+.entry{margin:4px 0 4px 16px;padding:4px 8px}
+.file{border:1px solid var(--line);border-radius:4px;padding:0 6px;margin:3px 0;width:max-content}
+.box b{font-weight:600}
+.bname{font-weight:700;margin:0 0 2px}
+.src{color:var(--muted);font-size:11px;margin-left:8px}
+.sm{color:var(--muted)}
+.side{font-size:12px}
+.ink{color:var(--ink);font-weight:600}
+.note{margin:0;padding:0 0 0 16px;font-size:12px;color:var(--muted);line-height:1.5}
+.note li{margin:1px 0}
+.note code{font:11px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+.cL{background:#ddf4ff;border-radius:3px;padding:0 3px}.box.bL,.file.bL{background:#ddf4ff;border-color:#54aeff}.cF{background:#dafbe1;border-radius:3px;padding:0 3px}.box.bF,.file.bF{background:#dafbe1;border-color:#4ac26b}.cD{background:#fbefff;border-radius:3px;padding:0 3px}.box.bD,.file.bD{background:#fbefff;border-color:#c297ff}
+.oldp{margin:0 0 10px}
+.olds{color:var(--muted);font-size:12px;font-weight:400;margin:0 0 8px}
+.oldk{margin:0 0 6px}
+.oldk>summary{cursor:pointer;font-weight:600;font-size:13px;padding:2px 0}
+.oldk>summary .olds{margin-left:8px}
+.oldk[open]>summary{margin-bottom:6px}
+.oldk>*:not(summary){margin-left:16px}
+.td{padding:2px 9px;text-align:right;white-space:nowrap}.z0{background:#fde3e3;color:#d64545}.z1{padding:1px 18px 1px 0;text-align:right}.z2{padding:1px 18px 1px 0}.z3{padding:1px 0;text-align:right}.z4{border-bottom:1px solid #d9dbe3;color:#5c5962;}.z5{margin:2px 0 0 14px}.z6{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;font-size:11px;font-weight:400}.z7{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;font-size:10px;font-weight:400}.z8{color:#c3c9ce;padding:2px 2px}.z9{margin:10px 0 2px;font-weight:700}.z10{background:#fde3e3;color:#d64545;text-decoration:none}.z11{background:#efeafd;color:#6a4fd8;font-weight:700}.z12{margin:0;padding:6px 10px;white-space:pre-wrap;overflow-wrap:anywhere}.z13{border-bottom:1px solid #d9dbe3;color:#5c5962;text-align:left}.z14{width:760px;font:700 12px system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;color:#27262b;margin:16px 0 4px}.z15{background:#ddf3e9;color:#0b8a5f}.z16{font-family:Consolas,monospace;color:#5c5962;font-size:11px}.z17{margin:0;padding:6px 10px;white-space:pre-wrap;overflow-wrap:anywhere;border-left:1px solid #d9dbe3}.z18{padding:6px 12px;font:700 11px/1 system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;color:#5c5962;border-bottom:1px solid #d9dbe3}.z19{padding:6px 12px;font:700 11px/1 system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;color:#5c5962;border-bottom:1px solid #d9dbe3;border-left:1px solid #d9dbe3}.z20{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;font-size:11px;font-weight:700}.z21{font:11px system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;color:#5c5962;border-collapse:collapse;margin:0 0 6px}.z22{border-collapse:collapse;font-size:12px}.z23{padding:2px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}.z24{background:#fdecd9;color:#d9692a}.z25{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;font-size:9px;font-weight:400}.z26{width:760px;white-space:normal;font:13px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;color:#27262b}.z27{font:700 11px system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;color:#5c5962;margin-top:8px}.z28{display:grid;grid-template-columns:1fr 1fr;width:760px;border:1px solid #d9dbe3;border-radius:8px;background:#fff;font:10px/1.5 Consolas,monospace;color:#27262b}.z29{width:760px;font:11px system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;color:#5c5962;margin:2px 0 4px}.z30{font-size:10px;color:#5c5962}.z31{padding:1px 16px 1px 0;font-family:Consolas,monospace}.z32{text-align:left;}.z33{color:#c3c9ce;padding:2px 2px;color:#c3c9ce}.z34{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;font-size:12px;font-weight:700}.z35{padding:2px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.z36{padding:2px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:Consolas,monospace;font-size:11px;color:#5c5962}.z37{border:1px solid #d9dbe3;border-radius:6px;padding:3px 6px;margin:0 0 6px}.z38{padding:1px 16px 1px 0;text-align:right;white-space:nowrap}.z39{padding:1px 18px 1px 0;font-family:Consolas,monospace}.z40{padding:1px 18px 1px 0;font-family:Consolas,monospace;color:#d64545}.z41{color:#d64545;font-weight:700}.z42{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;font-size:12px;font-weight:400}.z43{font:12px system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;color:#5c5962;border-collapse:collapse;margin:0 0 12px}.z44{display:grid;grid-template-columns:1fr 1fr;width:760px;border:1px solid #d9dbe3;border-radius:8px;background:#fff;font:11px/1.6 Consolas,monospace;color:#27262b}.z45{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;font-size:13px;font-weight:700}.z46{font:12px system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;color:#5c5962;border-collapse:collapse;margin:0 0 6px}.z47{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;font-size:10px}.z48{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;font-size:10px;font-weight:700}.z49{display:block;margin:4px 0}.z50{padding:1px 16px 1px 0}.z51{padding:1px 16px 1px 0;text-align:right}.z52{display:grid;grid-template-columns:1fr 1fr;width:760px;border:1px solid #d9dbe3;border-radius:8px;background:#fff;font:10px/1.55 Consolas,monospace;color:#27262b}.z53{padding:6px 12px;font:700 11px/1.3 system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;color:#5c5962;border-bottom:1px solid #d9dbe3}.z54{padding:6px 12px;font:700 11px/1.3 system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;color:#5c5962;border-bottom:1px solid #d9dbe3;border-left:1px solid #d9dbe3}.z55{color:#27262b;font-weight:700}.z56{font-family:Consolas,monospace;font-size:11px;background:#fff;border:1px solid #d9dbe3;border-radius:6px;padding:4px 8px;line-height:1.6;width:760px;white-space:pre-wrap}
+.sec{margin:16px 0 0}
+.secb{border-left:1px solid var(--acc);padding-left:14px}
+.elem{margin:0 0 10px}
+.formula{display:block;width:max-content;max-width:100%;font:14px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:6px 12px;margin:2px 0 6px}
+.wname{width:200px;color:var(--ink)}
+.ename{font-weight:600;margin:0 0 3px}
+.rl{margin:0 0 6px;padding-left:18px}.rl li{margin:1px 0}
+.blk{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.blk .lbl{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif}
+.bl{white-space:pre-wrap;word-break:break-word}
+.bl.cut{background:#ffebe9;color:#82071e;text-decoration:line-through}
+.bl.gap{color:var(--muted);font-style:italic}
+.bl.moved{background:#dafbe1;color:#116329}
+.up{background:#dafbe1;color:#116329}
+.bl.hit{background:#fff8c5}
+.bl.cutmark{color:var(--muted);border-top:1px dashed var(--acc);margin:3px 0;padding-top:2px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;font-size:12px}
+.gets{margin:0 0 6px;font-size:13px}
+.meta{margin-top:6px;padding-top:4px;border-top:1px dashed var(--line);color:var(--muted)}
+.meta+.meta{margin-top:0;padding-top:0;border-top:0}
+.ba .blk{flex:1}
+.cnt{display:inline-block;width:78px;color:var(--muted);text-decoration:none}
+.bl.cut .cnt{text-decoration:none}
+.where{font-weight:400;font-size:11px;color:var(--muted);margin-left:10px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.brow{display:flex;align-items:center;gap:10px;margin:0 0 4px}
+.bday{width:48px;color:var(--muted)}
+.bar{display:flex;height:14px;width:520px}
+.seg{display:block;height:14px;margin-right:2px}
+.seg:first-child{border-radius:4px 0 0 4px}.seg:last-child{border-radius:0 4px 4px 0;margin-right:0}
+.bnum{font-size:12px;white-space:nowrap}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;margin:8px 0 0 58px}
+.legend i{display:inline-block;width:10px;height:10px;margin-right:5px;vertical-align:-1px}
+.sect{font-size:14px;font-weight:700;margin:0 0 6px}
+.cpart{margin:0 0 14px;border-left:1px solid var(--acc);padding-left:14px}
+.cname{font-weight:700;margin:0 0 2px}
+.nums{font-weight:400;color:var(--muted);font-size:12px;margin-left:10px}
+.rules td{vertical-align:top}
+.rules .cell{margin:0;font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-all;max-width:300px}
+.from{font-size:11px;color:var(--muted);margin:2px 0 0}
+.ba{display:flex;gap:10px;align-items:stretch}.ba>div{display:flex;flex-direction:column}.ba .code{flex:1}
+.ba{display:flex;gap:10px}.ba>div{flex:1;min-width:0}
+.ba .code{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:6px 8px;margin:0;
+ font:12px/1.55 ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-all}
+del{background:#ffebe9;color:#82071e;text-decoration:line-through}
+ins{background:#dafbe1;color:#116329;text-decoration:none}
+.fold{margin:6px 0 0}.fold>summary{cursor:pointer;font-weight:600}
+.fold .grid{margin:4px 0 10px}
+.grid{border-collapse:collapse;font-size:12px}
+.grid th,.grid td{border:1px solid var(--line);padding:3px 8px;text-align:left;vertical-align:top}
+.grid th{background:var(--bg);font-weight:600}
+.what{margin:0 0 6px}
+.card .io{display:flex;align-items:center;gap:10px;margin:0 0 8px}
+.card .io .box{flex:0 1 auto}
+.card .io .to{color:var(--muted);font-size:16px}
+.card code{font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+
+.vtag{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:10px;padding:0 6px;margin-left:6px;color:var(--muted);background:var(--card)}
+.rrow{display:flex;gap:8px;align-items:baseline;padding:1px 6px;border-radius:4px}
+.rrow.right,.grid tr.right td{background:#dafbe1}
+.rno{width:20px;color:var(--muted);text-align:right;flex:none}
+.rsc{width:46px;flex:none}
+.rtx{flex:1;min-width:0}
+.cname2{font-weight:600}
+.cname2{font-weight:500}
+.cfrom{color:var(--muted)}
+.where-ans{font-size:12px;margin:4px 0 4px}
+.switch{margin:4px 0}.swb{margin:0 0 6px}
+.sw{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:1px 10px;margin:0 6px 4px 0;cursor:pointer}
+.sw.on{background:var(--ink);border-color:var(--ink);color:#fff}
+
+.frame{display:flex;flex-direction:column;gap:10px}
+.frow{display:flex;gap:14px;align-items:flex-start}
+.flab{width:96px;flex:none;color:var(--muted);font-size:12px;padding-top:2px;text-transform:none}
+.fbody{flex:1;min-width:0}
+.fold.small>summary{font-weight:400;font-size:12px;color:var(--muted)}
+.places{font-size:11px;color:var(--muted);margin-left:6px}
+.story{margin:4px 0 0;padding-left:20px}.story li{margin:0 0 8px}
+.fbox{display:inline-block;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:2px 10px}
+
+.tl{display:flex;gap:6px;margin:4px 0}
+.tday{border:1px solid var(--line);border-radius:6px;padding:2px 10px;background:var(--card);font-size:12px}
+.tday.pick{border-color:#1a7f37;background:#dafbe1;font-weight:600}
+.tday.late{color:var(--muted);opacity:.5}
+.prompt{white-space:pre-wrap;font:12px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;background:var(--card);
+  border:1px solid var(--line);border-radius:6px;padding:8px 10px;margin:4px 0;max-width:100%}
+.prompt .slot{background:#fff8c5;border-radius:3px}
+.prompt .phead{font-weight:700}
+.prompt .mark{background:#fff8c5}
+.json{border:1px solid var(--line);border-radius:6px;background:var(--card);padding:4px 10px;margin:4px 0}
+.jrow{display:flex;gap:12px;padding:3px 0;border-bottom:1px solid var(--line)}.jrow:last-child{border-bottom:0}
+.jkey{width:80px;flex:none;font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--muted)}
+
+.vtag.nodate{background:none;border:1px dashed var(--line);color:var(--muted)}
+.fbody .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid th{font-weight:600;color:var(--muted);font-size:12px;text-align:left}
+.fbody .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid th{font-weight:600;color:var(--muted);font-size:12px;text-align:left}
+/*simple*/.c3{max-width:1200px;font-size:14px;line-height:1.55}.c3l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:12px 0 3px}.c3l:first-child{margin-top:0}.c3w{font-size:15px}.c3f{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:6px 10px}.c3code{font:11px ui-monospace,Consolas,monospace;color:var(--muted);margin:3px 0 0}.c3ex{margin:0 0 14px}.c3exl{font-size:13px;font-weight:600;margin:0 0 4px}.c3 pre.pj{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,Consolas,monospace}.days{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 6px}.day{border:1px solid var(--line);border-radius:6px;padding:1px 9px;font-size:13px}.day.on{background:#dafbe1;border-color:#4ac26b}.day.grey{color:#b0b8c1;border-style:dashed}/*end*/
+</style><style>.back{font-size:12px;margin:0 0 6px}.back a{color:var(--muted)}h1{font-size:20px;margin:0 0 4px}.sub{font-size:12px;color:var(--muted);margin:0 0 16px}</style></head><body><p class="back"><a href="../config.html">← config</a></p><h1>6.5 Check the answer</h1><p class="sub">a rule in code after the LLM: a rate question answered without a rate becomes “I don't know”</p><div class="col" id="pipe"></div><script>const STEPS = [{"id": "6", "name": "check the answer", "kids": [{"id": "6.5", "name": "check the answer", "card": "<div class=\"cpart\"><div class=\"what\">Gemma sometimes answers a rate question confidently without any rate in it. A small rule in code runs after the LLM: if the question asks for a value (rate, APR, APY, fee, dividend, interest) and the answer has none (a number with % or $, a decimal like 7.25, “free”, “waived”, “no … fee”), the answer becomes “I don't know”. Limits like “up to 2%” or “within 6%” do not count: they say how a rate moves, not what it is.</div><div class=\"what\">One exception: a question that asks for a link or a page (link, url, page, site, “where … find”) needs no number.</div><div class=\"what\">It does not know which number is right, only that some value is there: a wrong number passes. No model call, under 1 ms.</div><div class=\"ename\"><span class=\"where\">solution/generation/check_the_answer.py · ASKS_VALUE, HAS_VALUE, LIMIT, ASKS_LINK · runs after ask_the_llm()</span></div></div><div class=\"switch\"><div class=\"swb\"><button class=\"sw on\" data-i=\"0\">dup-147 · a rate the site does not give</button><button class=\"sw\" data-i=\"1\">dup-008 · a link, not a number</button></div><div class=\"swp\" data-i=\"0\"><div class=\"lbl\" style=\"margin-top:6px\">question</div><div class=\"blk\"><div class=\"bl\">What interest rate do you charge on a construction loan?</div></div><div class=\"lbl\" style=\"margin-top:6px\">the website</div><div class=\"blk\"><div class=\"bl\">explains how the construction loan works, but gives no rate → the right answer is “I don't know”</div></div><div class=\"lbl\" style=\"margin-top:6px\">Gemma’s answer · known = true · score 0</div><div class=\"blk\"><div class=\"bl\">At Dupaco, borrowers take out a one-year adjustable-rate mortgage (1/1 ARM) … Your interest rate stays the same for the first year, but it can adjust <s>up to 2%</s> annually after that (the rate will stay <s>within 6%</s> of the original rate over the life of the loan).</div></div><div class=\"lbl\" style=\"margin-top:6px\">the check</div><div class=\"blk\"><div class=\"bl\">asks for a value? <b>yes</b> (“interest rate”) · asks for a link? no</div><div class=\"bl\">a value in the answer? “up to 2%” and “within 6%” are limits, not rates → <b>no value left</b></div></div><div class=\"lbl\" style=\"margin-top:6px\">after the check · score 1</div><div class=\"blk\"><div class=\"bl\"><ins>I don't know.</ins> (known = false)</div></div></div><div class=\"swp\" data-i=\"1\" hidden><div class=\"lbl\" style=\"margin-top:6px\">question</div><div class=\"blk\"><div class=\"bl\">What link should I use to see Dupaco's CD / certificate rates?</div></div><div class=\"lbl\" style=\"margin-top:6px\">Gemma’s answer · known = true</div><div class=\"blk\"><div class=\"bl\">You can see today's rates at dupaco.com/personal/savings-account.</div></div><div class=\"lbl\" style=\"margin-top:6px\">the check</div><div class=\"blk\"><div class=\"bl\">asks for a value? <b>yes</b> (“rates”) · asks for a link? <b>yes</b> (“link”) → the check does not apply</div></div><div class=\"lbl\" style=\"margin-top:6px\">after the check · score 1</div><div class=\"blk\"><div class=\"bl\"><ins>the answer is kept</ins> · before the link rule it became “I don't know” and scored 0</div></div></div></div><div class=\"cpart\"><div class=\"what\">Result: step 7, Gemma 0.739 → 0.780 on the 30 tuning questions; dup-147 is fixed for Gemma, Bolt and Qwen in every run, and nothing breaks in 23 saved variants. The link rule turns dup-008 from 0 into 1 (the final run: 0.762 → 0.770).</div><div class=\"what\">Not built: answering rate questions straight from the rate table that the conflicts step already collects. The table holds the right value with its date for all 11 rate questions, but Gemma already answers them right, so it would add speed, not accuracy, and a wrong match would give a wrong number.</div></div>"}]}];
+const open = new Set();
+let fresh = null;
+function draw(nodes, box, depth) {
+  nodes.forEach((n, i) => {
+    const sum = n.id.endsWith(".sum");  // a summary, not a step: no number, no arrow into it
+    if (i) box.insertAdjacentHTML("beforeend", sum ? '<span class="gapline"></span>' : '<span class="arrow"></span>');
+    const item = document.createElement("div"); item.className = "item";
+    const b = document.createElement("button"); b.className = "step" + (open.has(n.id) ? " open" : "");
+    b.dataset.depth = depth;
+    if (sum) b.classList.add("summary");
+    b.innerHTML = (sum ? "" : '<span class="num">' + n.id + "</span>") + n.name + (n.kids || n.card ? '<span class="plus">' + (open.has(n.id) ? "−" : "+") + "</span>" : "");
+    if (n.kids || n.card) b.onclick = () => { if (open.has(n.id)) open.delete(n.id); else { open.add(n.id); fresh = n.id; } render(); };
+    item.appendChild(b);
+    if (n.card && open.has(n.id)) {
+      item.classList.add("down");
+      item.insertAdjacentHTML("beforeend", '<div class="card' + (fresh === n.id ? " new" : "") + '">' + n.card + "</div>");
+    }
+    if (n.kids && open.has(n.id)) {
+      const c = document.createElement("div"); c.className = "col kids" + (fresh === n.id ? " new" : "");
+      item.classList.add("down");
+      item.appendChild(c); draw(n.kids, c, depth + 1);
+    }
+    box.appendChild(item);
+  });
+}
+function align() {
+  const by = {};
+  document.querySelectorAll(".step").forEach(b => { b.style.minWidth = ""; (by[b.dataset.depth] ||= []).push(b); });
+  Object.values(by).forEach(bs => { const w = Math.max(...bs.map(b => b.offsetWidth)); bs.forEach(b => b.style.minWidth = w + "px"); });
+}
+const HEAD = {h: "#818b98", r: "#bf8700", s: "#59636e"};
+function arrows() {
+  document.querySelectorAll(".dia").forEach(dia => {
+    dia.querySelector(":scope > svg.arr")?.remove();
+    const kids = [...dia.querySelectorAll(":scope > .at")];
+    dia.style.height = Math.max(...kids.map(k => k.offsetTop + k.offsetHeight)) + "px";
+    const base = dia.getBoundingClientRect();
+    const box = id => { const r = document.getElementById(id).getBoundingClientRect();
+      return {l: r.left - base.left, r: r.right - base.left, t: r.top - base.top, b: r.bottom - base.top}; };
+    const paths = JSON.parse(dia.dataset.arrows).map(([a, b, cls]) => {
+      const s = box(a), e = box(b);
+      let d;
+      if (e.l > s.r - 10) {
+        const x1 = s.r, y1 = (s.t + s.b) / 2, x2 = e.l - 3, y2 = Math.min(Math.max(y1, e.t + 14), e.b - 14), c = Math.max(30, (x2 - x1) / 2);
+        d = `M${x1},${y1} C${x1 + c},${y1} ${x2 - c},${y2} ${x2},${y2}`;
+      } else {
+        const x1 = (s.l + s.r) / 2, y1 = s.b, x2 = (e.l + e.r) / 2, y2 = e.t - 3, c = Math.max(20, (y2 - y1) / 2);
+        d = `M${x1},${y1} C${x1},${y1 + c} ${x2},${y2 - c} ${x2},${y2}`;
+      }
+      return `<path class="${cls}" d="${d}" marker-end="url(#ah-${cls})"/>`;
+    }).join("");
+    const marks = Object.entries(HEAD).map(([k, c]) => `<marker id="ah-${k}" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="${c}"/></marker>`).join("");
+    dia.insertAdjacentHTML("afterbegin", `<svg class="arr" width="${dia.scrollWidth}" height="${dia.scrollHeight}"><defs>${marks}</defs>${paths}</svg>`);
+  });
+}
+function render() { const p = document.getElementById("pipe"); const kids = STEPS[0].kids; if (kids.length === 1) { p.innerHTML = `<div class="card">${kids[0].card}</div>`; } else { p.innerHTML = ""; draw(kids, p, 1); } align(); arrows(); fresh = null; }
+addEventListener("resize", arrows);
+addEventListener("animationend", arrows);
+document.addEventListener("click", e => {  // a switch inside a card: show one pane, keep the open steps as they are
+  const b = e.target.closest(".sw");
+  if (!b) return;
+  const box = b.closest(".switch");
+  box.querySelectorAll(":scope > .swb > .sw").forEach(x => x.classList.toggle("on", x === b));
+  box.querySelectorAll(":scope > .swp").forEach(p => p.hidden = p.dataset.i !== b.dataset.i);
+});
+render();
+</script></body></html>
