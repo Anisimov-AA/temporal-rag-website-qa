@@ -113,12 +113,15 @@ They write `view_clean.html` and `view_chunks.html` with one page per website pa
 
 ## Results
 
-On one L4 on Google Cloud, on the 40 public questions plus 80 reworded ones:
+On one L4 on Google Cloud. In brackets: without the 3 broken answer keys.
 
-- accuracy 0.770 (0.841 without the 3 broken answer keys)
-- the same answer on a repeat: 0.89 (the same without the broken keys)
-- p95 answer time 7.5 s (the same without the broken keys)
-- final score 0.713 (0.779 without the broken keys)
+- the 40 public questions: accuracy 0.825 (0.902)
+- the 40 questions plus 80 reworded ones: accuracy 0.770 (0.841)
+- the same answer on a repeat: 0.89
+- p95 answer time 7.5 s
+- final score 0.713 (0.779)
+
+The 10 questions I kept aside until the end scored 0.774 on their first run. After that I fixed questions that ask for a link (the answer checker turned them into “I don't know”); I found it on one of those 10, so the numbers above include a fix that is not blind.
 
 The final score counts accuracy, repeats and speed. The kit has no answer key for conflicts, so that part is left out.
 
