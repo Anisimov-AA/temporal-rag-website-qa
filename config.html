@@ -64,7 +64,7 @@ table.detail tr.dropped{display:none}table.detail.show-dropped tr.dropped{displa
 .blockhead{margin:28px 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:4px}
 details.side{margin:8px 0 4px;font-size:12px;color:var(--muted)}details.side summary{cursor:pointer}details.side table{margin-top:6px;color:var(--ink)}.ans-link{text-decoration:none}.ans-link:hover{text-decoration:underline}
 table.detail td:first-child{white-space:normal;min-width:180px;max-width:340px}tr.dropped-head td{white-space:normal}tr.dropped-head td .meta{display:block;max-width:560px;white-space:normal;margin-top:2px}
-</style>
+.aftertitle{font-size:13px;font-weight:600;margin:16px 0 4px}</style>
 </head>
 <body>
 <h1>Experiments</h1>
@@ -458,20 +458,22 @@ const STEPS = [
     name: "Step 12 · Final check on the held-out questions",
     block: "final",
     answers: "step11",
+    afterTitle: "after the link fix · the same 10 questions in the final run · not blind: the fix came after looking at dup-008",
     goal: "How does the chosen chain score on 10 questions never used to choose anything, on one machine?",
-    result: ["Score on 10 unseen questions: 0.774 · repeat 1.00 · p95 7.6 s · final 0.732 (conflicts not scored)", "With the link fix (the same 10 questions in the final run): 0.871 · p95 8.2 s · final 0.818 · by meaning (LLM judge) 0.887 · not blind: the fix came after looking at dup-008, one of these 10 questions, so 0.774 stays the blind score", "Question vector on the CPU: 0.1 s · on the GPU bge-m3 and Gemma swap on every question (p95 27 s)", "Ingest: 25 min of the 30 allowed · Gemma stayed on the GPU, bge-m3 ran on the CPU · fixed later: 5 min (final results)", "By meaning (LLM judge): Gemma 0.85 · Opus 0.75, it refuses 2 questions the excerpts answer", "Opus on the same chunks: 0.677, below Gemma"],
+    result: ["Gemma 26B q4, blind: 0.774 on 10 unseen questions · repeat 1.00 · p95 7.6 s · final 0.732 · by meaning 0.85", "Gemma 26B q4 after the link fix: 0.871 · p95 8.2 s · final 0.818 · by meaning 0.887 · not blind: the fix came from dup-008, one of these 10", "Opus 5.5 via agents, not the API (an estimate): 0.677 blind, 0.774 after the fix · by meaning 0.75: it refuses 2 questions the excerpts answer", "Question vector on the CPU: 0.1 s · on the GPU bge-m3 and Gemma swap on every question (p95 27 s)", "Ingest: 25 min of the 30 allowed, later 5 min (see final results)"],
     decision: "submit: one L4 · the bge-m3 index built on the GPU · the question vector on the CPU · reranker and Gemma on the GPU · all 5 pages as links",
     read: [["held-out", "10 questions set aside at the start (dev/split.json), never used to choose anything"], ["chain", "steps 0–9: vectors + BM25 + rerank, top 5, dates on, JSON + known line, Gemma 4 26B q4, refusal check, all 5 chunks as links"], ["scorer", "the organizers' harness/run_eval.py: accuracy, repeat (each question asked twice), speed from p95"], ["final score", "accuracy 55 %, consistency 15 %, speed 15 % · conflicts 15 % are not scored here (no gold file)"], ["ingest", "time to load, clean, chunk and index the 5 snapshots, limit 30 min · “—” = the index was already on disk; built from scratch it took 25 min here, 5 min after the fix (final results)"]],
     droppedWhy: "embeddinggemma: the same accuracy (0.774), but ingest from scratch took 35 min, over the 30-minute limit · links the LLM names: 0.677 for both models, kept for the demo",
     results: [["accuracy", "bar"], ["repeat", "bar"], ["p95 seconds", "sec"], ["speed score", "bar"], ["final score", "bar"], ["ingest", "n"]],
     rows: [
-      {name: "12.o2", what: "Opus 5.5 · ceiling, answers only", noisy: true, hw: "agents", pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 2, 0, 0, 0], results: [0.6774, null, null, null, null, null], cleanResults: [0.6774, null, null, null, null, null]},
-      {name: "12.4", what: "the submission · one L4, the question vector on the CPU", pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 3, 1, 0, 0], results: [0.7742, 1.0, 7.55, 0.6917, 0.7321, "\u2014"], cleanResults: [0.7742, 1.0, 7.55, 0.6917, 0.7321, "\u2014"]},
-      {name: "12.6", what: "the submission · with the link fix (final run) · not blind", chosen: true, pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 3, 1, 0, 0], results: [0.871, 1.0, 8.23, 0.6539, 0.8178, "5 min"], cleanResults: [0.871, 1.0, 8.23, 0.6539, 0.8178, "5 min"]},
-      {name: "12.3", what: "the same, the question vector on the GPU", pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 3, 1, 0, 0], results: [0.7742, 0.95, 27.12, 0.0, 0.6307, "25 min"], cleanResults: [0.7742, 0.95, 27.12, 0.0, 0.6307, "25 min"]},
-      {name: "12.5", what: "the same, embeddinggemma instead of bge-m3", dropped: true, pick: [0, 0, 0, 4, 1, 1, 0, 0, 1, 1, 0, 3, 1, 0, 0], results: [0.7742, 1.0, 8.21, 0.655, 0.7271, "35 min"], cleanResults: [0.7742, 1.0, 8.21, 0.655, 0.7271, "35 min"]},
-      {name: "12.1", what: "Gemma · only the pages it names as links", dropped: true, pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 5, 1, 0, 1], results: [0.6774, 0.95, 21.62, 0.0, 0.5519, "\u2014"], cleanResults: [0.6774, 0.95, 21.62, 0.0, 0.5519, "\u2014"]},
-      {name: "12.o1", what: "Opus 5.5 · only the pages it names as links", noisy: true, hw: "agents", dropped: true, pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 2, 0, 0, 1], results: [0.6774, null, null, null, null, null], cleanResults: [0.6774, null, null, null, null, null]},
+      {name: "12.o2", what: "Opus 5.5 · ceiling via agents (an estimate)", noisy: true, hw: "agents", pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 2, 0, 0, 0], results: [0.6774, null, null, null, null, null], cleanResults: [0.6774, null, null, null, null, null]},
+      {name: "12.4", what: "Gemma 26B q4 · the submission", chosen: true, pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 3, 1, 0, 0], results: [0.7742, 1.0, 7.55, 0.6917, 0.7321, "\u2014"], cleanResults: [0.7742, 1.0, 7.55, 0.6917, 0.7321, "\u2014"]},
+      {name: "12.3", what: "Gemma 26B q4 · question vector on the GPU", pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 3, 1, 0, 0], results: [0.7742, 0.95, 27.12, 0.0, 0.6307, "25 min"], cleanResults: [0.7742, 0.95, 27.12, 0.0, 0.6307, "25 min"]},
+      {name: "12.5", what: "Gemma 26B q4 · embeddinggemma index", dropped: true, pick: [0, 0, 0, 4, 1, 1, 0, 0, 1, 1, 0, 3, 1, 0, 0], results: [0.7742, 1.0, 8.21, 0.655, 0.7271, "35 min"], cleanResults: [0.7742, 1.0, 8.21, 0.655, 0.7271, "35 min"]},
+      {name: "12.1", what: "Gemma 26B q4 · links it names", dropped: true, pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 5, 1, 0, 1], results: [0.6774, 0.95, 21.62, 0.0, 0.5519, "\u2014"], cleanResults: [0.6774, 0.95, 21.62, 0.0, 0.5519, "\u2014"]},
+      {name: "12.o1", what: "Opus 5.5 · links it names", noisy: true, hw: "agents", dropped: true, pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 2, 0, 0, 1], results: [0.6774, null, null, null, null, null], cleanResults: [0.6774, null, null, null, null, null]},
+      {name: "12.o3", after: true, what: "Opus 5.5 · ceiling via agents (an estimate)", noisy: true, hw: "agents", pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 2, 0, 0, 0], results: [0.7742, null, null, null, null, null], cleanResults: [0.7742, null, null, null, null, null]},
+      {name: "12.6", after: true, what: "Gemma 26B q4 · the submission", chosen: true, pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 3, 1, 0, 0], results: [0.871, 1.0, 8.23, 0.6539, 0.8178, "5 min"], cleanResults: [0.871, 1.0, 8.23, 0.6539, 0.8178, "5 min"]},
     ],
   },
   {
@@ -481,13 +483,14 @@ const STEPS = [
     goal: "How does the submission do on every question we have, asked 3 ways, on one L4?",
     decision: "the numbers for the write-up",
     read: [["chain", "the submission from step 12: bge-m3 index on the GPU, question vector on the CPU, reranker + Gemma 4 26B q4 on one L4, JSON + known line, all 5 pages as links"], ["questions", "the 40 questions of the eval, each with 2 paraphrases (eval/full_eval.jsonl): the tuning ones from dev/paraphrases.json, the held-out ones from dev/paraphrases_holdout.json"], ["scorer", "the organizers' harness/run_eval.py with --repeat-sample 40, run on one L4 inside the demo's Docker"], ["accuracy", "weighted by each question's weight, as the organizers score it"], ["ingest", "measured in a second run after the fix (10 held-out questions, index built from scratch); the fix only changes when Gemma is loaded, not the answers"]],
-    result: ["Score: 0.770 · repeat 0.89 · p95 7.48 s · final 0.713 (conflicts not scored: <a href='pipeline/find%20conflicts.html'>how conflicts() works</a>)", "Without the 3 broken keys: 0.841", "By set: held-out 0.871 (not blind after the link fix, see step 12) · their paraphrases 0.683 (the hardest) · tuning 0.810 · tuning paraphrases 0.761", "By meaning (LLM judge): 0.902 · right 100, partly 17, wrong 3 of 120", "Keys the judge doubts: broken 011, 049, 088 · too strict 081, 087, 104", "Same answer: the 3 wordings agree for 78% of the questions · a repeat 40 of 40", "Paraphrases: 9 score lower than their original. In 2 the answer is not in the 5 chunks (dup-064-p1, dup-066-p2: “lobbies open” for lobby hours, “drive-through” for drive-up); in the other 7 the chunks have it and the LLM answers differently. Multi-query search (the LLM rewrites the question 2–3 times) could fix at most the 2 search misses, about +0.02, for about 1 s more per answer, so it was not tried.", "Ingest: 5.3 min from scratch (86 min before Gemma was unloaded while an index is built)"],
+    result: ["Gemma 26B q4, all 120: 0.770 (0.841 without the broken keys) · repeat 0.89 · p95 7.48 s · final 0.713 · conflicts not scored: <a href='pipeline/find%20conflicts.html'>how conflicts() works</a>", "By set: held-out 0.871 (not blind, see step 12) · their paraphrases 0.683 · tuning 0.810 · tuning paraphrases 0.761", "By meaning (LLM judge): 0.902 · right 100, partly 17, wrong 3", "Keys the judge doubts: broken 011, 049, 088 · too strict 081, 087, 104", "Same answer: 3 wordings agree for 78% · a repeat 40 of 40", "Paraphrases: 9 score lower than the original · 2 are search misses (dup-064, dup-066: other words for the same thing) · in 7 the chunks have the answer and the LLM answers differently · multi-query search would fix at most the 2, about +0.02, for about 1 s more", "Opus 5.5 via agents, not the API (an estimate of the ceiling): 0.778 (0.851) · less than 0.01 above Gemma 26B q4: the limit is the search, the data and the strict keys, not the model", "Ingest: 5.3 min from scratch (86 min before Gemma was unloaded during the build)"],
     results: [["accuracy", "bar"], ["by meaning", "bar"], ["repeat", "bar"], ["p95 seconds", "sec"], ["speed score", "bar"], ["final score", "bar"], ["ingest", "n"]],
     rows: [
-      {name: "13.1", what: "the 40 questions · the organizers' set", pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 3, 1, 0, 0], results: [0.825, 0.934, null, null, null, null, null], cleanResults: [0.902, 0.941, null, null, null, null, null]},
-      {name: "13.2", what: "paraphrase 1 of each question", pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 3, 1, 0, 0], results: [0.739, 0.891, null, null, null, null, null], cleanResults: [0.808, 0.898, null, null, null, null, null]},
-      {name: "13.3", what: "paraphrase 2 of each question", pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 3, 1, 0, 0], results: [0.745, 0.88, null, null, null, null, null], cleanResults: [0.814, 0.886, null, null, null, null, null]},
-      {name: "13.4", what: "all 120 · 40 questions + 80 paraphrases", chosen: true, pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 3, 1, 0, 0], results: [0.7696, 0.902, 0.8875, 7.48, 0.6956, 0.713, "5 min"], cleanResults: [0.841, 0.908, 0.8875, 7.48, 0.6956, 0.779, "5 min"]},
+      {name: "13.5", what: "Opus 5.5 · ceiling via agents, not the API (an estimate) · all 120", noisy: true, hw: "agents", pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 3, 1, 0, 0], results: [0.778, null, null, null, null, null, null], cleanResults: [0.851, null, null, null, null, null, null]},
+      {name: "13.1", what: "Gemma 26B q4 · the 40 questions (organizers' set)", pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 3, 1, 0, 0], results: [0.825, 0.934, null, null, null, null, null], cleanResults: [0.902, 0.941, null, null, null, null, null]},
+      {name: "13.2", what: "Gemma 26B q4 · paraphrase 1", pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 3, 1, 0, 0], results: [0.739, 0.891, null, null, null, null, null], cleanResults: [0.808, 0.898, null, null, null, null, null]},
+      {name: "13.3", what: "Gemma 26B q4 · paraphrase 2", pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 3, 1, 0, 0], results: [0.745, 0.88, null, null, null, null, null], cleanResults: [0.814, 0.886, null, null, null, null, null]},
+      {name: "13.4", what: "Gemma 26B q4 · all 120, the submission", chosen: true, pick: [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 3, 1, 0, 0], results: [0.7696, 0.902, 0.8875, 7.48, 0.6956, 0.713, "5 min"], cleanResults: [0.841, 0.908, 0.8875, 7.48, 0.6956, 0.779, "5 min"]},
     ],
   },
 ];
@@ -545,7 +548,7 @@ function pivot(step) {
   if (step.transpose) {
     html = `<table class="pivot"><thead><tr><th>LLM</th>${variants.map(v => `<th>${step.labels && step.labels[v] ? step.labels[v] : v}</th>`).join("")}</tr></thead><tbody>`;
     const dropped = step.dropped || [];
-    const line = m => { const top = m === step.ceiling; return `<tr class="${top ? "ceiling" : ""}${dropped.includes(m) ? " dropped" : ""}"><td><b>${m}</b><div class="meta">${top ? "ceiling · API" : (step.hw || HW[m] || "")}</div></td>${variants.map(v => td(m, v, null)).join("")}</tr>`; };
+    const line = m => { const top = m === step.ceiling; return `<tr class="${top ? "ceiling" : ""}${dropped.includes(m) ? " dropped" : ""}"><td><b>${m}</b><div class="meta">${top ? "ceiling · via agents, not the API" : (step.hw || HW[m] || "")}</div></td>${variants.map(v => td(m, v, null)).join("")}</tr>`; };
     models.filter(m => !dropped.includes(m)).forEach(m => { html += line(m); });
     if (dropped.length) {
       html += `<tr class="dropped-head" onclick="event.stopPropagation(); this.closest('table').classList.toggle('show-dropped')"><td colspan="${variants.length + 1}">▸ dropped (${dropped.length})${step.droppedWhy ? ` <span class="meta">· ${step.droppedWhy}</span>` : ""}</td></tr>`;
@@ -662,6 +665,8 @@ STEPS.forEach((step, k) => {
     rows = [...step.rows].sort((a, b) => order.indexOf(groupOf(a)) - order.indexOf(groupOf(b)) || acc(b) - acc(a));
   }
   const line = r => `<tr class="${r.chosen ? "chosen" : ""}${r.dropped ? " dropped" : ""}"><td>${r.what}${r.group ? ` <span class="tag ${r.group}">${GROUPS[r.group]}</span>` : ""}${r.chosen ? ' <span class="mark">✓</span>' : ""}</td>${resultCells(step, r)}</tr>`;
+  const after = rows.filter(r => r.after);
+  rows = rows.filter(r => !r.after);
   const kept = rows.filter(r => !r.dropped), gone = rows.filter(r => r.dropped);
   const body = kept.map(line).join("") + (gone.length ? `<tr class="dropped-head" onclick="event.stopPropagation(); this.closest('table').classList.toggle('show-dropped')"><td colspan="${step.results.length + 1}">▸ dropped (${gone.length})${step.droppedWhy ? ` <span class="meta">· ${step.droppedWhy}</span>` : ""}</td></tr>` + gone.map(line).join("") : "");
   const last = step === STEPS[STEPS.length - 1];
@@ -671,8 +676,9 @@ STEPS.forEach((step, k) => {
   const list = items => `<ul>${items.map(x => `<li>${lead(x)}</li>`).join("")}</ul>`;
   card.innerHTML = `<details${isOpen ? " open" : ""}><summary><h2>${step.name}</h2>${step.answers ? ` <a class="ans-link" href="${step.answers === "step1" ? "answers/answers.html" : "answers/answers_" + step.answers + ".html"}" target="_blank">answers →</a>` : ""}${step.doc ? ` <a class="ans-link" href="${step.doc}">how it works →</a>` : ""}</summary>
 ${step.goal ? `<p class="goal">${step.goal}</p>` : `<div class="q">${step.question || ""}</div>`}
-${(step.rows || []).some(r => r.clean || r.cleanResults) ? `<div class="tsw"><button data-m="0" class="sw${MODE === 0 ? " on" : ""}">all questions</button><button data-m="1" class="sw${MODE === 1 ? " on" : ""}">without the 3 broken keys</button></div>` : ""}${last ? document.getElementById("terms-tpl").innerHTML : ""}
+${(step.rows || []).some(r => (r.cleanResults && JSON.stringify(r.cleanResults) !== JSON.stringify(r.results)) || (r.clean && r.results && r.clean[0] !== r.results[0])) ? `<div class="tsw"><button data-m="0" class="sw${MODE === 0 ? " on" : ""}">all questions</button><button data-m="1" class="sw${MODE === 1 ? " on" : ""}">without the 3 broken keys</button></div>` : ""}${last ? document.getElementById("terms-tpl").innerHTML : ""}
 ${step.pivot ? pivot(step) : `<table class="detail"><thead>${head}</thead><tbody>${body}</tbody></table>`}
+${after.length ? `<div class="aftertitle">${step.afterTitle || "after the fix"}</div><table class="detail after"><thead>${head}</thead><tbody>${after.map(line).join("")}</tbody></table>` : ""}
 ${step.extra ? `<details class="side"><summary>side check · ${step.extra.title}</summary><table class="detail side"><thead><tr>${step.extra.head.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${step.extra.rows.map(r => `<tr class="${r.chosen ? "chosen" : ""}">${r.cells.map((c, i) => `<td>${c}${i === 0 && r.chosen ? ' <span class="mark">✓</span>' : ""}</td>`).join("")}</tr>`).join("")}</tbody></table></details>` : ""}
 ${step.result ? `<div class="result">${list(step.result)}</div>` : step.findings ? `<div class="findings">${step.findings}</div>` : ""}
 ${step.decision ? `<p class="choice">→ ${step.decision.replace(/^→\s*/, "")}</p>` : ""}
@@ -684,8 +690,8 @@ ${step.notes ? `<div class="notes">${step.notes}</div>` : ""}</details>`;
   const plain = h => h.replace(/<div class=meta>/g, " ").replace(/<[^>]*>/g, "").trim();
   if (step.pivot) rows.forEach(row => { const [m, ...v] = row.what.split(" · "); const k = v.join(" · "); allRows.push({tr: null, row, label: m + " · " + plain(step.labels && step.labels[k] ? step.labels[k] : k)}); });
   else {
-    const shown = rows.filter(r => !r.dropped).concat(rows.filter(r => r.dropped));
-    card.querySelector("table.detail").querySelectorAll("tbody tr:not(.dropped-head)").forEach((tr, k) => allRows.push({tr, row: shown[k]}));
+    const shown = rows.filter(r => !r.dropped).concat(rows.filter(r => r.dropped)).concat(after);
+    [...card.querySelectorAll("table.detail:not(.side) tbody tr:not(.dropped-head)")].forEach((tr, k) => allRows.push({tr, row: shown[k]}));
   }
 });
 allRows.forEach((a, n) => { if (a.tr) a.tr.onclick = () => select(n); });
