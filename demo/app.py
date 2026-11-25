@@ -210,7 +210,7 @@ def page(snapshot_id, name):
         raise HTTPException(404)
     text = (SNAPSHOTS / snapshot_id / "pages" / name).read_text(encoding="utf-8")
     html = markdown.markdown(text, extensions=["tables"])
-    html = re.sub(r"<a[^>]*>", "<span>", html).replace("</a>", "</span>")
+    html = re.sub(r"<a\b[^>]*>", "<span>", html).replace("</a>", "</span>")
     day = nice(snapshot_id.split("_")[1])
     return f"""<html><head><meta charset='utf-8'><title>{Path(name).stem}</title>
 <style>body{{max-width:800px;margin:auto;font-family:sans-serif;padding:16px}}
