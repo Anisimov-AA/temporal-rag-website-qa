@@ -5,7 +5,7 @@ from ollama import Client
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "harness"))
 from contract import Answer, Snapshot  # noqa: E402
-from find_conflicts import find_conflicts, rate_table  # noqa: E402
+from find_conflicts import find_conflicts, prose_rates, rate_table  # noqa: E402
 from generation.ask_the_llm import GAPS, LLMS, ask_the_llm  # noqa: E402
 from generation.check_the_answer import check_the_answer  # noqa: E402
 from generation.cite_the_sources import cite_the_sources  # noqa: E402
@@ -57,11 +57,13 @@ class Knowledge:
         self.keywords = {}
         self.dates = {}
         self.rates = []
+        self.prose = []
 
     def ingest(self, snapshot: Snapshot):
         c = self.config
         pages = load_pages(snapshot)
         self.rates += rate_table(pages)
+        self.prose += prose_rates(pages)
         cleaned = clean_pages(pages, c["clean"])
         chunks = split_into_chunks(cleaned, c["chunk_size"])
         docs = index_docs(chunks)
@@ -118,7 +120,7 @@ class Knowledge:
         return Answer(text=reply.answer, sources=cite_the_sources(chunks, reply.pages))
 
     def conflicts(self):
-        return find_conflicts(self.rates)
+        return find_conflicts(self.rates, self.prose)
 
 
 def build(config=None):

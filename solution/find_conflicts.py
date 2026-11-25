@@ -50,10 +50,26 @@ def page_rows(doc):
     return rows
 
 
+LINE_FACT = re.compile(r"^(?P<label>[A-Za-z0-9][^|:%]{2,60}?)\s+(?P<kind>APY|APR|dividend rate|rate)\s*:?\s*(?P<value>\d+(?:\.\d+)?%)\s*$", re.I)
+TITLE = re.compile(r"^# (.+)$", re.M)
+
+
+def line_rows(doc):
+    title = TITLE.search(doc.page_content)
+    rows = []
+    for line in doc.page_content.splitlines():
+        found = LINE_FACT.match(line.strip())
+        if found and title:
+            rows.append({"snapshot": doc.metadata["snapshot_id"], "taken_on": doc.metadata["taken_on"], "url": doc.metadata["url"],
+                         "section": title.group(1).strip(), "effective": "",
+                         "cells": {"product": found["label"].strip(), found["kind"].upper(): found["value"]}})
+    return rows
+
+
 def rate_table(docs):
     rows = []
     for doc in docs:
-        rows += page_rows(doc)
+        rows += page_rows(doc) + line_rows(doc)
     return rows
 
 
@@ -155,5 +171,58 @@ def between_pages(rows):
     return out
 
 
-def find_conflicts(rows):
-    return over_time(rows) + between_pages(rows) if rows else []
+EXAMPLE = re.compile(r"If you borrow(?:ed)? \$(?P<amount>[\d,]+) at (?:an? )?(?P<value>\d+(?:\.\d+)?)% annual percentage rate \(APR\) (?:with|for) an? (?P<term>\d+)[- ]month", re.I)
+SHORT_EXAMPLE = re.compile(r"For an? \$(?P<amount>[\d,]+) loan for a term of (?P<term>\d+) months with an? (?P<value>\d+(?:\.\d+)?)% APR", re.I)
+OFFER = re.compile(r"(?:The )?(?P<name>(?:[A-Z][a-z]+ ){1,4})program offers[^.]*?rates?\s+(?:of\s+|as low as\s+)*(?P<value>\d+\.\d+)% APR")
+DAY = re.compile(r"^(January|February|March|April|May|June|July|August|September|October|November|December) (\d{1,2}), (\d{4})$", re.M)
+MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+
+def page_day(text):
+    found = DAY.search("\n".join(text.splitlines()[:15]))
+    return f"{found.group(3)}-{MONTHS.index(found.group(1)) + 1:02d}-{int(found.group(2)):02d}" if found else ""
+
+
+def prose_rates(docs):
+    rows = []
+    for doc in docs:
+        text, day = doc.page_content, page_day(doc.page_content)
+        base = {"snapshot": doc.metadata["snapshot_id"], "url": doc.metadata["url"], "day": day}
+        for found in list(EXAMPLE.finditer(text)) + list(SHORT_EXAMPLE.finditer(text)):
+            topic = f"loan payment example: ${found['amount']} for {found['term']} months"
+            rows.append({**base, "kind": "example", "topic": topic, "value": f"{found['value']}% APR"})
+        for found in OFFER.finditer(text):
+            rows.append({**base, "kind": "offer", "topic": f"{found['name'].strip()} program rate", "value": f"{found['value']}% APR"})
+    return rows
+
+
+def in_prose(prose, known):
+    newest = max(r["snapshot"] for r in prose)
+    groups = defaultdict(lambda: defaultdict(list))
+    for r in prose:
+        if r["snapshot"] == newest:
+            groups[(r["kind"], r["topic"])][r["value"]].append(r)
+    out = []
+    for (kind, topic), by_value in groups.items():
+        if len(by_value) < 2:
+            continue
+        values = list(by_value)
+        if any(all(RATE.findall(v)[0] in " ".join(c.values) for v in values) for c in known):
+            continue
+        if kind == "offer":
+            winner = max(values, key=lambda v: max(r["day"] for r in by_value[v]))
+            why = "temporal: the newest news release says it"
+        else:
+            official = [v for v in values if any(r["url"].rstrip("/").endswith("/rates") for r in by_value[v])]
+            winner = official[0] if len(official) == 1 else max(values, key=lambda v: len(by_value[v]))
+            why = "authority: the official rates page shows it" if len(official) == 1 else "authority: most pages show it"
+        others = "; ".join(f'{v} on {", ".join(r["url"].split("dupaco.com")[-1] for r in by_value[v])}' for v in values if v != winner)
+        out.append(Conflict(topic=topic, values=values,
+                            sources=[Source(url=r["url"], snapshot_id=newest, quote=v) for v in values for r in by_value[v]],
+                            resolution=winner, reason=f"{why}; {others}"))
+    return out
+
+
+def find_conflicts(rows, prose=()):
+    found = over_time(rows) + between_pages(rows) if rows else []
+    return found + (in_prose(list(prose), found) if prose else [])
