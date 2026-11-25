@@ -14,54 +14,108 @@ Everything runs on one NVIDIA GPU with 24 GB of memory. There are no API calls a
 - bge-m3 in Ollama: builds the search index
 - bge-reranker-v2-m3 (Hugging Face, fp16): reranks the search results
 
-## Setup
+I had no paid API and no GPU of my own, so I rented one NVIDIA L4 on Google Cloud. Any cloud or computer with a 24 GB NVIDIA GPU works the same way.
 
-**1. A Linux machine with an NVIDIA GPU with 24 GB of memory** (I used an L4), 32 GB RAM and 60 GB of disk. It can be your own computer, a cloud VM or a cluster node. Check that the driver sees the GPU:
+## The demo
+
+`demo/` is a web page on top of the same chain. You ask a question, pick a version of the site, and get the answer with its sources. Each source opens the saved copy of the page at the passage the model read. The demo runs in Docker: Ollama with the two models, and the app on port 7860.
+
+## Run it on Google Cloud (what I did)
+
+**1. A VM with an L4.** Compute Engine → Create instance:
+
+- machine type `g2-standard-8` (8 vCPU, 32 GB RAM, 1 NVIDIA L4)
+- boot disk: a Deep Learning image with the NVIDIA driver (I used `common-cu129-ubuntu-2204-nvidia-580`), 100 GB
+
+Open SSH on the VM and check that the driver sees the GPU:
 
     nvidia-smi
 
-**2. Ollama.** Install it from [ollama.com/download/linux](https://ollama.com/download/linux). Without sudo (for example on a cluster), use the manual install from the same page and unpack it into your home folder.
+**2. Open port 7860.** VPC network → Firewall → Create firewall rule: targets "All instances in the network", source `0.0.0.0/0`, TCP `7860`.
 
-Start it with three options and pull the two models:
+**3. Docker and its access to the GPU.**
 
-    OLLAMA_FLASH_ATTENTION=1 OLLAMA_MAX_LOADED_MODELS=2 OLLAMA_KEEP_ALIVE=-1 ollama serve &
-    ollama pull bge-m3
-    ollama pull gemma4:26b-a4b-it-q4_K_M
+    curl -fsSL https://get.docker.com | sudo sh
+    sudo usermod -aG docker $USER
+    newgrp docker
 
-If the installer already started Ollama as a service, stop it first (`sudo systemctl stop ollama`) so the options apply.
+    curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+    curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+    sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
+    sudo nvidia-ctk runtime configure --runtime=docker
+    sudo systemctl restart docker
 
-**3. Python 3.11 and the packages.**
+Check that a container sees the GPU:
+
+    docker run --rm --gpus all ubuntu nvidia-smi
+
+**4. The code and the data.** The website downloads are not in this repo: take the 5 zips from `snapshots_zip/` of the hackathon kit. In the SSH window, "Upload file" puts them in your home folder.
 
     git clone https://github.com/Anisimov-AA/temporal-rag-website-qa.git
     cd temporal-rag-website-qa
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    uv venv --python 3.11 && source .venv/bin/activate
-    uv pip install torch --index-url https://download.pytorch.org/whl/cu128
-    uv pip install -r requirements.txt
+    sudo apt-get install -y unzip
+    mkdir -p snapshots_zip && mv ~/*.zip snapshots_zip/
+    for z in snapshots_zip/*.zip; do unzip -q -n "$z" -d snapshots/; done
 
-**4. The data.** The website downloads are not in this repo. Put the `snapshots_zip/` folder from the hackathon kit next to `snapshots/`. The scorer unpacks it on the first run.
+**5. Start the demo.**
 
-**5. Where Ollama is.** Create a `.env` file in the top folder:
+    cd demo
+    docker compose up -d --build
+    docker compose logs -f app
 
-    GCP_OLLAMA=http://localhost:11434
+The first start takes about 20 minutes: it builds the image, pulls the models (18 GB) and builds the index (5 min). It is ready at `Uvicorn running on http://0.0.0.0:7860`. Open `http://<the VM's External IP>:7860`.
 
-## Run
+**6. The scorer on the same machine.** It runs inside the app container, which already has the code, the data, the index and Ollama:
 
-    python harness/run_eval.py --submission solution --eval eval/public_eval.jsonl
+    docker compose cp ../eval app:/app/eval
+    docker compose exec app mkdir -p results
+    docker compose exec -d app sh -c "python harness/run_eval.py --submission solution --eval eval/full_eval.jsonl --repeat-sample 40 --out results/gcp > results/gcp.log 2>&1"
+    docker compose exec app tail -3 results/gcp.log
 
-- The first run builds one index per download. This takes about 5 minutes. Later runs reuse the index in `index/`.
-- The reranker downloads from Hugging Face on the first run.
-- The score and every answer are written to `results/`.
+When it ends, copy the report out:
 
-To check the 40 questions plus 80 reworded ones, use `--eval eval/full_eval.jsonl --repeat-sample 40`.
+    docker compose cp app:/app/results/gcp ./gcp_results
+
+**7. Stop the VM when you are done.** The GPU costs money while the VM runs. The models and the index stay on the disk, so the next start takes a few minutes:
+
+    cd ~/temporal-rag-website-qa/demo && docker compose up -d
+
+To keep the same address, make the External IP static (VPC network → IP addresses → Promote to static).
+
+## Other clouds or your own GPU
+
+Any Linux machine with a 24 GB NVIDIA GPU and its driver works. With Docker, start from step 3.
+
+Without Docker (for example on a cluster node without sudo):
+
+1. Install [Ollama](https://ollama.com/download/linux), start it and pull the two models:
+
+       OLLAMA_FLASH_ATTENTION=1 OLLAMA_MAX_LOADED_MODELS=2 OLLAMA_KEEP_ALIVE=-1 ollama serve &
+       ollama pull bge-m3
+       ollama pull gemma4:26b-a4b-it-q4_K_M
+
+2. Install Python 3.11 and the packages:
+
+       curl -LsSf https://astral.sh/uv/install.sh | sh
+       uv venv --python 3.11 && source .venv/bin/activate
+       uv pip install torch --index-url https://download.pytorch.org/whl/cu128
+       uv pip install -r requirements.txt
+
+3. Put the 5 zips into `snapshots_zip/` (the scorer unpacks them) and tell the solution where Ollama is, in a `.env` file:
+
+       GCP_OLLAMA=http://localhost:11434
+
+4. Run the scorer:
+
+       python harness/run_eval.py --submission solution --eval eval/public_eval.jsonl
 
 ## Results
 
 On one L4, on the 40 public questions plus 80 reworded ones:
 
 - accuracy 0.767 (0.839 without the 3 broken answer keys)
-- the same answer on a repeat: 0.89
-- p95 answer time 8 s
+- the same answer on a repeat: 0.89 (the same without the broken keys)
+- p95 answer time 8 s (the same without the broken keys)
 - final score 0.707 (0.773 without the broken keys)
 
 The final score counts accuracy, repeats and speed. The kit has no answer key for conflicts, so that part is left out.
